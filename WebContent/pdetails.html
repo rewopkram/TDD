@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en-US">
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+    
+    
+<style>
+table, th , td {
+  		border: 1px solid grey;
+  		border-collapse: collapse;
+  		padding: 5px;
+}
+table tr:nth-child(odd) {
+  background-color: #f1f1f1;
+}
+table tr:nth-child(even) {
+  background-color: #ffffff;
+}
+</style>
+<!-- 
+details.html retrieves a list of people via a rest service and displays in a sortable table.
+clicking a row will retrieve additional details for that person from another rest service and display the full details below
+the table.
+
+It verifies the following angularJS and resteasy features:
+1. using $http service to retrieve json data and display
+2. embedding a function (sortByMe) in the $scope to sort table data
+3. use of ng-click to call a function
+4. embedding $http service inside a function in the $scope to be called when table row is clicked
+5. passing $scope parameters to rest service to retrieve json data
+ -->
+    <body>
+        
+        <div ng-app="myApp" ng-controller="myCtrl">
+        
+        	statuscode: {{statuscode}}<br>
+            statustext: {{statustext}}<br>
+            
+            <ul><li ng-repeat="x in myData" ng-click="search(x.name)">
+            	{{x.name + ', ' + x.country}}
+            	</li>
+            </ul>
+            
+            <table border="1">
+            	<th>#</th>
+            	<th ng-click="orderByMe('name')">Name</th>
+            	<th ng-click="orderByMe('country')">Country</th>
+            	<tr ng-repeat="x in myData | orderBy:myOrderBy" ng-click="search(x.name)">
+            		<td>{{$index + 1}}</td>
+            		<td>{{x.name}}</td>
+            		<td>{{x.country | uppercase}}</td>
+            	</tr>
+            </table>
+            
+           
+           <h3>Personal Details</h3>
+           Name: {{person.name}}<br>
+           DOB: {{person.dob}}<br>
+           Hobbies: {{person.hobbies}}<br>
+           City: {{person.city}}<br>
+           Country: {{person.country}}<br>
+           
+            </div>
+        
+        
+        <script>
+            var app = angular.module('myApp',[]);
+            app.controller('myCtrl', function($scope, $http) {  
+            	// initialise searchBy scope variable
+            	$scope.searchBy = "Richie Taferner";
+            	
+            	// call rest list service to retrieve all persons
+            	$http({
+            		url: 'rest/json',
+            		method: 'GET'
+            	}).then(function (response) {
+            		$scope.myData = response.data.paginatedListWrapper.list;
+            		//$scope.person = response.data.person;
+            		$scope.statuscode = response.status;
+                    $scope.statustext = response.statusText;
+            	}, function(response) {
+                    $scope.person = "something went wrong";
+                    $scope.statuscode = response.status;
+                    $scope.statustext = response.statusText;
+            	});  
+            	
+            	// declare search function to retrieve full person details when row in table clicked
+            	// this may not work because we're not declaring application/json as body/param
+            	$scope.search = function(x) {
+            		alert("search by " + x);
+            		$scope.searchBy = x;
+            		
+            		$http({
+                		url: 'rest/json',
+                		method: 'POST',
+                		data: {
+                			name: $scope.searchBy
+                		}
+                	}).then(function (response) {
+                		$scope.person = response.data.person;
+                		$scope.statuscode = response.status;
+                        $scope.statustext = response.statusText;
+                	}, function(response) {
+                        $scope.person = "something went wrong";
+                        $scope.statuscode = response.status;
+                        $scope.statustext = response.statusText;
+                	});      
+            	}
+            	
+            <!--
+            	$scope.orderByMe = function(x) {
+            		$scope.myOrderBy = x;
+            	}
+            -->
+            });
+                           
+
+            </script>
+        
+    </body>
+</htmL>

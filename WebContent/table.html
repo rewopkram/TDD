@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en-US">
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+    
+    
+<style>
+table, th , td {
+  		border: 1px solid grey;
+  		border-collapse: collapse;
+  		padding: 5px;
+}
+table tr:nth-child(odd) {
+  background-color: #f1f1f1;
+}
+table tr:nth-child(even) {
+  background-color: #ffffff;
+}
+</style>
+    <body>
+    
+    <!-- The purpose of this class is to test AngularJS syntax
+         It submits a GET request to a REST service and displays the results in a table.
+         AngularJS successfully parses the PaginatedListWrapper pojo returned by the service. -->
+        
+        <div ng-app="myApp" ng-controller="myCtrl">
+        
+        	statuscode: {{statuscode}}<br>
+            statustext: {{statustext}}<br>
+            
+            <ul><li ng-repeat="x in myData">
+            	{{x.name + ', ' + x.country}}
+            	</li>
+            </ul>
+            
+            <table border="1">
+            	<th>#</th>
+            	<th ng-click="orderByMe('name')">Name</th>
+            	<th ng-click="orderByMe('country')">Country</th>
+            	<tr ng-repeat="x in myData | orderBy:myOrderBy">
+            		<td>{{$index + 1}}</td>
+            		<td>{{x.name}}</td>
+            		<td>{{x.country | uppercase}}</td>
+            	</tr>
+            </table>
+            
+            </div>
+        
+        
+        <script>
+            var app = angular.module('myApp',[]);
+            app.controller('myCtrl', function($scope, $http) {   
+            	/* $http.get("customers.php").then(function(response) {
+            		$scope.myData = response.data.paginatedListWrapper.list;
+            	}); */
+            	
+            	$http({
+            		url: 'rest/json',
+            		method: 'GET'
+            	}).then(function (response) {
+            		$scope.myData = response.data.paginatedListWrapper.list;
+            		$scope.statuscode = response.status;
+                    $scope.statustext = response.statusText;
+            	}, function(response) {
+                    $scope.person = "something went wrong";
+                    $scope.statuscode = response.status;
+                    $scope.statustext = response.statusText;
+            	});      
+            
+            	$scope.orderByMe = function(x) {
+            		$scope.myOrderBy = x;
+            	}
+            });
+                           
+
+            </script>
+        
+    </body>
+</htmL>
